@@ -1,0 +1,48 @@
+name: Sleep Number Daily Sync (10 AM + 6 PM EDT)
+
+on:
+  schedule:
+    # 10 AM EDT = 2 PM UTC (for night sleep data)
+    - cron: '0 14 * * *'
+    # 6 PM EDT = 10 PM UTC (for nap data)
+    - cron: '0 22 * * *'
+  
+  # Allow manual trigger from GitHub UI
+  workflow_dispatch:
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements_CURRENT.txt
+    
+    - name: Run Sleep Number Sync
+      env:
+        SLEEP_NUMBER_EMAIL: ${{ secrets.SLEEP_NUMBER_EMAIL }}
+        SLEEP_NUMBER_PASSWORD: ${{ secrets.SLEEP_NUMBER_PASSWORD }}
+        GOOGLE_SHEETS_ID: ${{ secrets.GOOGLE_SHEETS_ID }}
+        GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+      run: python sleep_sync_CURRENT.py
+    
+    - name: Log completion
+      if: success()
+      run: echo "✅ Sleep Number sync completed successfully"
+    
+    - name: Log failure
+      if: failure()
+      run: echo "❌ Sleep Number sync failed - check logs above"
