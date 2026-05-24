@@ -1,79 +1,37 @@
 # Sleep Number to Google Sheets Sync - Project Summary
 
 ## Project Goal
-Automatically sync Sleep Number bed data (including Heart Rate, HRV, Respiratory Rate, Sleep Score) to Google Sheets every day at 11 AM and 6 PM EDT.
+Automatically sync **all available** Sleep Number bed data (including Heart Rate, HRV, Respiratory Rate, Sleep Score, Session Duration, Out of Bed Time, and Fall Asleep Time) to Google Sheets every day at 10 AM and 6 PM EDT.
 
 ---
 
 ## Current Status
 
-### What Works ✅
-- Sleep Number API authentication
-- Google Sheets API authentication with service account
-- Real-time bed status (in bed, sleep number preference)
-- Basic row writing to Google Sheet
-
-### What Needs Investigation ❌
-- Historical sleep data retrieval (30 days backfill)
-- Fetching Heart Rate, HRV, Respiratory Rate, Sleep Score from sleep sessions
-- Multiple sleep sessions per day (night sleep + naps)
-- Proper date/time formatting in Google Sheet
+### What Works ✅ (Everything!)
+- **Sleep Number API authentication**
+- **Google Sheets API authentication** via Service Account
+- **Smart Auto-Backfill**: Automatically detects missing dates in the last 30 days and fetches them.
+- **"In Bed" Handling**: Safely skips fetching if you are actively in bed (data will be picked up on the next run once the sleep session ends).
+- **GitHub Actions Automation**: Deployed and running flawlessly at 10 AM and 6 PM EDT every day.
+- **Full Data Extract**: Captures 16 distinct metrics per sleeper.
 
 ---
 
 ## Architecture
 
 ### Components
-1. **Sleep Number API** (asyncsleepiq library)
-   - Authenticates with Sleep Number account
-   - Fetches bed status and sleep data
+1. **Sleep Number API** (`asyncsleepiq` library)
+   - Authenticates with Sleep Number account.
+   - Specifically uses `sleeper.get_sleep_data(date)` to retrieve full session arrays (avoids the bug in older scripts that used the non-existent `api.fetch_sleep_data()`).
    
-2. **Google Sheets API** (gspread library)
-   - Authenticates via service account JSON
-   - Writes data rows to spreadsheet
+2. **Google Sheets API** (`gspread` library)
+   - Authenticates via service account JSON.
+   - Pushes directly to the **"Full Sleep Data"** worksheet tab.
+   - Writes using `USER_ENTERED` mode so Google Sheets properly formats dates/times instead of plain text.
 
 3. **GitHub Actions** (Automation)
-   - Runs Python script automatically
-   - Schedule: 11 AM EDT (night sleep) + 6 PM EDT (naps)
-   - Uses environment variables for credentials
-
----
-
-## Setup Instructions
-
-### Step 1: Install Dependencies
-```bash
-pip install -r requirements.txt
-```
-
-### Step 2: Create Google Service Account
-1. Go to console.cloud.google.com
-2. Create service account (name: sleep-number-sync)
-3. Create JSON key
-4. Share your Google Sheet with the service account email
-5. Save JSON as `credentials.json` (for local testing)
-
-### Step 3: Set Environment Variables
-```bash
-export SLEEP_NUMBER_EMAIL="gbaveja72@gmail.com"
-export SLEEP_NUMBER_PASSWORD="Sikhnet12!"
-export GOOGLE_SHEETS_ID="1yWvLH6sm4iDyOTxeZsXJuuMALYAFGnPiBdlrsH9M1zs"
-export GOOGLE_CREDENTIALS='{"type":"service_account",...}'  # Paste JSON contents
-```
-
-### Step 4: Test Locally
-```bash
-python sleep_sync.py
-```
-
-### Step 5: Deploy to GitHub Actions
-1. Create GitHub repo: `sleep-number-sync`
-2. Add files: `sleep_sync.py`, `requirements.txt`, `.github/workflows/sleep-sync.yml`
-3. Add repository secrets (Settings → Secrets):
-   - SLEEP_NUMBER_EMAIL
-   - SLEEP_NUMBER_PASSWORD
-   - GOOGLE_SHEETS_ID
-   - GOOGLE_CREDENTIALS (paste entire JSON)
+   - `.github/workflows/sleep-sync-CURRENT.yml`
+   - Triggered at 10 AM EDT (`0 14 * * *`) and 6 PM EDT (`0 22 * * *`).
 
 ---
 
@@ -81,88 +39,25 @@ python sleep_sync.py
 
 ```
 sleep-number-sync/
-├── sleep_sync.py                    # Main sync script
-├── requirements.txt                 # Python dependencies
-├── credentials.json                 # Service account JSON (local only)
+├── sleep_sync_CURRENT.py            # Main smart sync script
+├── requirements_CURRENT.txt         # Python dependencies
 ├── .github/
 │   └── workflows/
-│       └── sleep-sync.yml          # GitHub Actions workflow
-└── README.md                        # This file
+│       └── sleep-sync-CURRENT.yml  # GitHub Actions schedule
+├── PROJECT_SUMMARY.md               # This reference document
+├── IDE_SETUP_GUIDE.md               # IDE setup guide
+└── README.md                        # Quick start guide
 ```
 
 ---
 
-## Current Code
+## Code Reference: sleep_sync_CURRENT.py
 
-### sleep_sync.py
-- **Status:** Partially working
-- **Issues:** 
-  - Not fetching historical sleep data properly
-  - May not capture Heart Rate, HRV, Respiratory Rate in all cases
-  - Timezone handling needs verification
+### 1. Auto-Backfill Logic
+The script includes a `get_existing_dates()` method. It reads Column A of your `Full Sleep Data` sheet and compares it against the last 30 days. It only queries the Sleep Number API for the days missing from your sheet.
 
-### requirements.txt
-- asyncsleepiq
-- google-auth-oauthlib
-- google-auth-httplib2
-- google-api-python-client
-- gspread
-- pytz
+### 2. Time Conversion
+Raw data from Sleep Number returns duration in **seconds**. The script automatically divides these by 60 and rounds the numbers before pushing to Google Sheets, resulting in clean **minutes** for `Duration`, `Restful`, `Restless`, `Out of Bed`, and `Fall Asleep Period`.
 
-### sleep-sync.yml (GitHub Actions)
-- Runs at 11 AM UTC (3 PM UTC = 11 AM EDT)
-- Runs at 6 PM UTC (10 PM UTC = 6 PM EDT)
-- Uses environment variables from GitHub secrets
-
----
-
-## Known Limitations
-
-1. **Historical Data:** Sleep Number API may not support fetching arbitrary date ranges
-2. **Sleep Metrics:** Heart Rate, HRV, etc. only available when sleep session is complete
-3. **Timezone:** Script uses EDT; adjust for other timezones
-4. **Rate Limits:** Sleep Number API has rate limits (not documented)
-
----
-
-## Next Steps for Debugging
-
-1. **Enable verbose logging** in sleep_sync.py to see what data is being returned
-2. **Check asyncsleepiq library documentation** for available methods beyond fetch_sleep_data()
-3. **Test API directly** using Python interactive shell to inspect returned objects
-4. **Verify sleep sessions exist** in Sleep Number app before running sync
-5. **Check Google Sheet** for proper permissions and data format
-
----
-
-## Useful Commands
-
-```bash
-# Test locally
-python sleep_sync.py
-
-# Run with backfill flag (if implemented)
-BACKFILL=true python sleep_sync.py
-
-# Check logs
-tail -f ~/sleep_sync.log
-
-# Verify environment variables
-echo $SLEEP_NUMBER_EMAIL
-echo $GOOGLE_SHEETS_ID
-```
-
----
-
-## Contact/Support
-
-Current issues:
-- Sleep metrics not populating in Google Sheet
-- Unclear if asyncsleepiq supports historical data fetching with date parameters
-- Need to inspect actual API response to understand data structure
-
-Recommendation: Use Python IDE (VS Code, PyCharm) to:
-1. Step through code with debugger
-2. Inspect asyncsleepiq returned objects
-3. Log all API responses to understand structure
-4. Verify sleep_data object contains expected metrics
+### 3. Graceful Failure
+If the script encounters a day where `duration` is missing (i.e. you are actively in bed or the sleep session did not calculate), the script logs a warning `⚠️ No sleep metrics available` and completely skips pushing that row. This ensures it doesn't pollute your sheet with empty data, and guarantees it will be backfilled during the next run.
