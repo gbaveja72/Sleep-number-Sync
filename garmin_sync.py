@@ -24,8 +24,9 @@ class GarminSync:
     def login_garmin(self) -> bool:
         logger.info("🔐 Connecting to Garmin Connect...")
         try:
+            # Pass email/password if available, but login will use the tokenstore if they aren't
             self.client = Garmin(self.email, self.password)
-            self.client.login()
+            self.client.login("~/.garminconnect")
             logger.info("✅ Garmin authenticated")
             return True
         except Exception as e:
@@ -179,16 +180,12 @@ def main():
     password = os.getenv("GARMIN_PASSWORD")
     sheet_id = os.getenv("GOOGLE_SHEETS_ID")
     
-    if not all([email, password, sheet_id]):
+    if not sheet_id:
         print("❌ Missing required environment variables:")
-        if not email:
-            print("   - GARMIN_EMAIL")
-        if not password:
-            print("   - GARMIN_PASSWORD")
-        if not sheet_id:
-            print("   - GOOGLE_SHEETS_ID")
+        print("   - GOOGLE_SHEETS_ID")
         return False
-    
+        
+    # Email and password are now optional if ~/.garminconnect exists!
     syncer = GarminSync(email, password, sheet_id)
     success = syncer.sync()
     return success

@@ -39,17 +39,9 @@ jobs:
         GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
       run: python sleep_sync_CURRENT.py
     
-    - name: Run Garmin Connect Sync
-      env:
-        GARMIN_EMAIL: ${{ secrets.GARMIN_EMAIL }}
-        GARMIN_PASSWORD: ${{ secrets.GARMIN_PASSWORD }}
-        GOOGLE_SHEETS_ID: ${{ secrets.GOOGLE_SHEETS_ID }}
-        GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
-      run: python garmin_sync.py
-    
     - name: Log completion
       if: success()
-      run: echo "✅ Sleep & Garmin sync completed successfully"
+      run: echo "✅ Sleep sync completed successfully"
     
     - name: Log failure
       if: failure()
