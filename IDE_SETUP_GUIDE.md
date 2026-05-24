@@ -30,7 +30,7 @@ pip install -r requirements.txt
 **Mac/Linux:**
 ```bash
 export SLEEP_NUMBER_EMAIL="gbaveja72@gmail.com"
-export SLEEP_NUMBER_PASSWORD="Sikhnet12!"
+export SLEEP_NUMBER_PASSWORD="your_password_here"
 export GOOGLE_SHEETS_ID="1yWvLH6sm4iDyOTxeZsXJuuMALYAFGnPiBdlrsH9M1zs"
 export GOOGLE_CREDENTIALS='{"type":"service_account",...}'
 ```
@@ -38,7 +38,7 @@ export GOOGLE_CREDENTIALS='{"type":"service_account",...}'
 **Windows (PowerShell):**
 ```powershell
 $env:SLEEP_NUMBER_EMAIL = "gbaveja72@gmail.com"
-$env:SLEEP_NUMBER_PASSWORD = "Sikhnet12!"
+$env:SLEEP_NUMBER_PASSWORD = "your_password_here"
 $env:GOOGLE_SHEETS_ID = "1yWvLH6sm4iDyOTxeZsXJuuMALYAFGnPiBdlrsH9M1zs"
 $env:GOOGLE_CREDENTIALS = '{"type":"service_account",...}'
 ```
@@ -82,7 +82,7 @@ sleep-number-sync/
 | Name | Value |
 |------|-------|
 | SLEEP_NUMBER_EMAIL | gbaveja72@gmail.com |
-| SLEEP_NUMBER_PASSWORD | Sikhnet12! |
+| SLEEP_NUMBER_PASSWORD | your_password_here |
 | GOOGLE_SHEETS_ID | 1yWvLH6sm4iDyOTxeZsXJuuMALYAFGnPiBdlrsH9M1zs |
 | GOOGLE_CREDENTIALS | (paste entire JSON file) |
 
@@ -123,7 +123,7 @@ git push origin main
 4. Environment variables:
    ```
    SLEEP_NUMBER_EMAIL=gbaveja72@gmail.com
-   SLEEP_NUMBER_PASSWORD=Sikhnet12!
+   SLEEP_NUMBER_PASSWORD=your_password_here
    GOOGLE_SHEETS_ID=1yWvLH6sm4iDyOTxeZsXJuuMALYAFGnPiBdlrsH9M1zs
    GOOGLE_CREDENTIALS={"type":"service_account",...}
    ```

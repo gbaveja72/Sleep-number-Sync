@@ -43,7 +43,7 @@ pip install -r requirements.txt
 
 # 5. Set environment variables
 export SLEEP_NUMBER_EMAIL="gbaveja72@gmail.com"
-export SLEEP_NUMBER_PASSWORD="Sikhnet12!"
+export SLEEP_NUMBER_PASSWORD="your_password_here"
 export GOOGLE_SHEETS_ID="1yWvLH6sm4iDyOTxeZsXJuuMALYAFGnPiBdlrsH9M1zs"
 export GOOGLE_CREDENTIALS='{"type":"service_account",...}'
 
@@ -104,7 +104,7 @@ Right Heart Rate | Right HRV | Right Respiratory Rate | Right Sleep Score | Righ
 
 ### 1. Sleep Number Account
 - Email: `gbaveja72@gmail.com`
-- Password: `Sikhnet12!`
+- Password: `your_password_here`
 
 ### 2. Google Service Account JSON
 - Create at: console.cloud.google.com
